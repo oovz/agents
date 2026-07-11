@@ -1,0 +1,20 @@
+{
+  "name": "senior-engineering-workflow",
+  "version": "0.1.0",
+  "description": "A rigorous evidence-driven workflow for non-trivial software engineering tasks.",
+  "author": {
+    "name": "Senior Engineering Workflow Contributors"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Senior Engineering Workflow",
+    "shortDescription": "Evidence-driven engineering for complex work.",
+    "longDescription": "Investigate, design, implement, and validate non-trivial software changes with explicit requirements, evidence, delegation, and completion criteria.",
+    "developerName": "Senior Engineering Workflow Contributors",
+    "category": "Productivity",
+    "capabilities": ["Interactive", "Write"],
+    "defaultPrompt": [
+      "Use $senior-engineering-workflow to handle this non-trivial engineering task."
+    ]
+  }
+}

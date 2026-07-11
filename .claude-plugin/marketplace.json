@@ -1,0 +1,13 @@
+{
+  "name": "senior-engineering-workflow",
+  "owner": {
+    "name": "Senior Engineering Workflow Contributors"
+  },
+  "plugins": [
+    {
+      "name": "senior-engineering-workflow",
+      "source": "./plugins/senior-engineering-workflow",
+      "description": "A rigorous evidence-driven workflow for non-trivial software engineering tasks."
+    }
+  ]
+}

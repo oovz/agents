@@ -1,0 +1,4 @@
+interface:
+  display_name: "Senior Engineering Workflow"
+  short_description: "Evidence-driven workflow for complex engineering"
+  default_prompt: "Use $senior-engineering-workflow to investigate and complete this complex engineering task."
