@@ -3,18 +3,27 @@
   "version": "0.2.0",
   "description": "A rigorous evidence-driven workflow for non-trivial software engineering tasks.",
   "author": {
-    "name": "Senior Engineering Workflow Contributors"
+    "name": "Senior Engineering Workflow Contributors",
+    "url": "https://github.com/oovz/agents"
   },
+  "homepage": "https://github.com/oovz/agents",
+  "repository": "https://github.com/oovz/agents",
+  "license": "MIT",
+  "keywords": ["engineering", "architecture", "research", "multi-agent", "validation", "subagents", "workflow"],
   "skills": "./skills/",
   "interface": {
     "displayName": "Senior Engineering Workflow",
     "shortDescription": "Evidence-driven engineering for complex work.",
-    "longDescription": "Investigate, design, implement, and validate non-trivial software changes with explicit requirements, evidence, delegation, and completion criteria.",
+    "longDescription": "Investigate, design, implement, and validate non-trivial software changes with explicit requirements, evidence, delegation, and completion criteria. Ships three tiered subagents: workflow-researcher (gpt-5.6-sol), workflow-reviewer (gpt-5.6-terra), and workflow-executor (gpt-5.6-luna).",
     "developerName": "Senior Engineering Workflow Contributors",
     "category": "Productivity",
     "capabilities": ["Interactive", "Write"],
+    "websiteURL": "https://github.com/oovz/agents",
     "defaultPrompt": [
-      "Use $senior-engineering-workflow to handle this non-trivial engineering task."
-    ]
+      "Use $senior-engineering-workflow to handle this non-trivial engineering task.",
+      "Investigate this codebase and design a solution for this complex change.",
+      "Review this implementation for defects, security issues, and scope creep."
+    ],
+    "brandColor": "#2563EB"
   }
 }

@@ -1,13 +1,26 @@
 {
   "name": "senior-engineering-workflow",
   "owner": {
-    "name": "Senior Engineering Workflow Contributors"
+    "name": "Senior Engineering Workflow Contributors",
+    "url": "https://github.com/oovz/agents"
   },
+  "description": "A rigorous evidence-driven workflow plugin with tiered subagents for non-trivial software engineering tasks.",
   "plugins": [
     {
       "name": "senior-engineering-workflow",
       "source": "./plugins/senior-engineering-workflow",
-      "description": "A rigorous evidence-driven workflow for non-trivial software engineering tasks."
+      "description": "A rigorous evidence-driven workflow for non-trivial software engineering tasks.",
+      "version": "0.2.0",
+      "displayName": "Senior Engineering Workflow",
+      "author": {
+        "name": "Senior Engineering Workflow Contributors",
+        "url": "https://github.com/oovz/agents"
+      },
+      "homepage": "https://github.com/oovz/agents",
+      "repository": "https://github.com/oovz/agents",
+      "license": "MIT",
+      "keywords": ["engineering", "architecture", "research", "multi-agent", "validation", "subagents", "workflow"],
+      "category": "Productivity"
     }
   ]
 }

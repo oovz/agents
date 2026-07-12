@@ -43,10 +43,41 @@ export async function validateRepository() {
   }
   check(codex.version === claude.version && claude.version === gemini.version, "Host manifest versions differ");
   check(codex.skills === "./skills/", "Codex skills path is invalid");
-  check(codex.author?.name && codex.interface?.developerName, "Codex publisher metadata is incomplete");
+  check(codex.author?.name && codex.author?.url, "Codex plugin author must include name and url");
+  check(codex.homepage && codex.repository, "Codex plugin must have homepage and repository");
+  check(codex.license === "MIT", "Codex plugin license must be MIT");
+  check(Array.isArray(codex.keywords) && codex.keywords.length >= 3, "Codex plugin must have at least 3 keywords");
+  check(codex.interface?.developerName, "Codex plugin interface must have developerName");
+  check(codex.interface?.websiteURL, "Codex plugin interface must have websiteURL");
+  check(codex.interface?.brandColor, "Codex plugin interface must have brandColor");
   check(Array.isArray(codex.interface?.defaultPrompt) && codex.interface.defaultPrompt.length > 0 && codex.interface.defaultPrompt.length <= 3, "Codex defaultPrompt must contain one to three prompts");
-  check(claudeMarket.name === NAME && claudeMarket.plugins?.[0]?.source === `./plugins/${NAME}`, "Claude marketplace source is invalid");
-  check(codexMarket.name === NAME && codexMarket.plugins?.[0]?.source?.path === `./plugins/${NAME}`, "Codex marketplace source is invalid");
+
+  check(claude.displayName === "Senior Engineering Workflow", "Claude plugin must have displayName");
+  check(claude.author?.name && claude.author?.url, "Claude plugin author must include name and url");
+  check(claude.homepage && claude.repository, "Claude plugin must have homepage and repository");
+  check(claude.license === "MIT", "Claude plugin license must be MIT");
+  check(Array.isArray(claude.keywords) && claude.keywords.length >= 3, "Claude plugin must have at least 3 keywords");
+  check(claude.skills === "./skills/", "Claude plugin skills path is invalid");
+  check(claude.agents === "./agents/", "Claude plugin agents path is invalid");
+
+  check(claudeMarket.name === NAME, "Claude marketplace name is invalid");
+  check(claudeMarket.owner?.name, "Claude marketplace must have owner name");
+  check(claudeMarket.owner?.url, "Claude marketplace must have owner url");
+  check(typeof claudeMarket.description === "string", "Claude marketplace must have description");
+  check(claudeMarket.plugins?.[0]?.source === `./plugins/${NAME}`, "Claude marketplace source is invalid");
+  check(claudeMarket.plugins?.[0]?.version === codex.version, "Claude marketplace plugin version must match manifest");
+  check(claudeMarket.plugins?.[0]?.license === "MIT", "Claude marketplace plugin entry must declare MIT license");
+  check(claudeMarket.plugins?.[0]?.category === "Productivity", "Claude marketplace plugin entry must have category");
+
+  check(codexMarket.name === NAME, "Codex marketplace name is invalid");
+  check(codexMarket.interface?.displayName === "Senior Engineering Workflow", "Codex marketplace must have interface.displayName");
+  check(codexMarket.plugins?.[0]?.source?.path === `./plugins/${NAME}`, "Codex marketplace source is invalid");
+  check(codexMarket.plugins?.[0]?.policy?.installation === "AVAILABLE", "Codex marketplace plugin must have AVAILABLE installation policy");
+  check(codexMarket.plugins?.[0]?.policy?.authentication === "ON_INSTALL", "Codex marketplace plugin must have ON_INSTALL authentication policy");
+  check(codexMarket.plugins?.[0]?.category === "Productivity", "Codex marketplace plugin entry must have category");
+
+  const licenseText = await readFile(path.join(ROOT, "LICENSE"), "utf8");
+  check(/MIT License/.test(licenseText), "LICENSE file must contain MIT License text");
 
   const skillText = await readFile(path.join(PLUGIN, "skills", NAME, "SKILL.md"), "utf8");
   const skillMeta = frontmatter(skillText);

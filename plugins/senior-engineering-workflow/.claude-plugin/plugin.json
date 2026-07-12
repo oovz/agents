@@ -5,7 +5,13 @@
   "version": "0.2.0",
   "description": "A rigorous evidence-driven workflow for non-trivial software engineering tasks.",
   "author": {
-    "name": "Senior Engineering Workflow Contributors"
+    "name": "Senior Engineering Workflow Contributors",
+    "url": "https://github.com/oovz/agents"
   },
-  "keywords": ["engineering", "architecture", "research", "multi-agent", "validation"]
+  "homepage": "https://github.com/oovz/agents",
+  "repository": "https://github.com/oovz/agents",
+  "license": "MIT",
+  "keywords": ["engineering", "architecture", "research", "multi-agent", "validation", "subagents", "workflow"],
+  "skills": "./skills/",
+  "agents": "./agents/"
 }
