@@ -7,6 +7,53 @@ description: Use for non-trivial software work involving ambiguous requirements,
 
 Apply this workflow iteratively. Treat requirements, feasibility, architecture, and plans as working models that must change when evidence changes.
 
+## Subagent delegation strategy
+
+This workflow uses three tiered subagents to balance cost, capability, and independence:
+
+- **`workflow-researcher`** — read-only research, design analysis, codebase exploration, evidence gathering. Pinned to the most advanced model (`gpt-5.6-sol`) with `max` reasoning effort for ambiguous, multi-step reasoning tasks.
+- **`workflow-reviewer`** — independent read-only code review, security analysis, and verification of completed work. Pinned to the mid-tier model (`gpt-5.6-terra`) with `max` reasoning effort for strong analysis at moderate cost. Using a different model tier from the researcher and executor provides genuine independence — a different model brings a different perspective.
+- **`workflow-executor`** — write-capable implementation and test execution. Pinned to the cost-effective model (`gpt-5.6-luna`) with `max` reasoning effort. Luna is the cost champion for high-volume routine work; `max` effort is essential because Luna is less capable — DeepSWE v1.1 shows Luna jumps from 44.2% at `high` to 67.2% at `max`, a 23-point improvement that makes it competitive.
+
+When the host supports subagent model configuration (Claude Code, Codex), each subagent is pinned to an appropriate model and reasoning-effort tier. When the host does not expose model pinning, create an equivalent worker with bounded scope and evidence-linked output.
+
+Prefer `workflow-researcher` for steps 1–7 (research, design). Prefer `workflow-executor` for steps 8–9 (implementation, test execution). Prefer `workflow-reviewer` for step 10 (review and challenge the result). The main agent retains ownership of integration, design decisions, and user communication.
+
+### DeepSWE v1.1 evidence
+
+Model and effort selections are grounded in DeepSWE v1.1 benchmark results (113 long-horizon software engineering tasks, pass@1, Datacurve, July 2026):
+
+| Model | Effort | Pass@1 | Avg cost/task |
+|---|---|---|---|
+| `gpt-5.6-sol` | `max` | 72.7% | $8.39 |
+| `gpt-5.6-terra` | `max` | 69.6% | $4.95 |
+| `gpt-5.6-luna` | `max` | 67.2% | $3.03 |
+| `gpt-5.6-luna` | `high` | 44.2% | $0.78 |
+
+All three tiers use `max` effort because the data shows it is decisive, especially for Luna (44.2% → 67.2%). At `max`, the three tiers cluster within 5.5 points, so the cost difference dominates: Luna @max costs 36% of Sol @max for 5.5 fewer points. Sol is reserved for the hardest research and design work where the extra points matter; Terra handles review at 59% of Sol's cost; Luna handles high-volume execution at 36%.
+
+### Context window constraints
+
+Codex caps GPT-5.6 at an effective context window of approximately 258K tokens (272K × 95%), smaller than the 1.05M window available via the API. DeepSWE v1.1 shows peak context reaching 201K tokens for Luna @max on long-horizon tasks — close to the Codex limit.
+
+This makes proactive subagent spawning essential, not optional:
+
+- Give each subagent a bounded, focused scope so it does not approach the context limit.
+- Spawn multiple `workflow-researcher` subagents aggressively for independent research directions rather than overloading a single agent.
+- Split large implementation work across multiple `workflow-executor` invocations by milestone or file ownership, not by arbitrary token counts.
+
+### Proactive parallel spawning
+
+Spawn multiple `workflow-researcher` subagents aggressively for independent research directions — codebase exploration, documentation lookup, test analysis, and evidence gathering are read-heavy tasks that parallelize well and keep the main context clean. Even with large context windows, flooding the main conversation with noisy intermediate output causes context pollution and context rot that degrades reliability over time. Give each researcher a non-overlapping scope and require evidence-linked summaries.
+
+Be more careful with parallel `workflow-executor` spawning. Write-heavy workflows create file conflicts and coordination overhead. Only spawn multiple executors in parallel when all of the following hold:
+
+- slices are independent and interfaces are settled;
+- each executor has an isolated worktree or equivalent environment;
+- each executor is assigned an explicit, non-overlapping set of files it owns.
+
+When these conditions do not hold, run executors sequentially or handle implementation directly in the main agent. `workflow-reviewer` can run in parallel with other review or research agents since it is read-only and does not conflict.
+
 ## 1. Establish the current state
 
 Before proposing a design or editing code:
@@ -21,7 +68,7 @@ Before proposing a design or editing code:
   - **Delegated exploration** when raw repository, documentation, test, log, or diff output is much larger than the conclusions the main context needs;
   - **Long-horizon** when the task has multiple milestones, may cross context windows, or needs durable state.
 
-If exploration is context-heavy, delegate before broad searching. Prefer the bundled `workflow-explorer` subagent when the host exposes it; otherwise create an equivalent read-only worker with a bounded scope and evidence-linked output.
+If exploration is context-heavy, delegate before broad searching. Prefer the bundled `workflow-researcher` subagent when the host exposes it; otherwise create an equivalent read-only worker with a bounded scope and evidence-linked output.
 
 ## 2. Build a requirements model
 
@@ -77,7 +124,7 @@ For uncertain or contested questions:
 - distinguish observation from inference;
 - revise the requirements and design when evidence changes.
 
-Use subagents for independent research directions. Give them non-overlapping scopes and require evidence-linked summaries.
+Use subagents for independent research directions. Give them non-overlapping scopes and require evidence-linked summaries. Prefer `workflow-researcher` for research and design analysis delegation.
 
 ## 4. Design proportionally
 
@@ -158,7 +205,7 @@ For a long-horizon task, initialize or update a durable task-state artifact befo
 
 Use one writer per working tree. The main agent normally owns implementation and integration.
 
-Delegate implementation only when slices are independent, interfaces are settled, and each writer has an isolated worktree or equivalent environment. Give each implementation agent explicit scope, files it owns, acceptance criteria, validation commands, and forbidden areas. Integrate and revalidate centrally.
+Delegate implementation only when slices are independent, interfaces are settled, and each writer has an isolated worktree or equivalent environment. Prefer `workflow-executor` for delegated implementation slices. Give each implementation agent explicit scope, an exclusive file-ownership set (no two agents edit the same file), acceptance criteria, validation commands, and forbidden areas. Integrate and revalidate centrally.
 
 During implementation:
 
@@ -187,7 +234,7 @@ For new behavior, test the applicable expected paths, boundaries, invalid input,
 
 Use unit, integration, contract, component, end-to-end, build, package, migration, and smoke tests according to risk.
 
-Delegate long test-suite execution or verbose log triage when useful, and require only failures, decisive excerpts, commands, and artifact references in the main context.
+Delegate long test-suite execution or verbose log triage when useful, preferring `workflow-executor` for test runs. Require only failures, decisive excerpts, commands, and artifact references in the main context.
 
 Never claim a result that was not observed.
 
@@ -202,7 +249,7 @@ Before delivery:
 - confirm intentionally deferred cases and compatibility decisions;
 - reconcile durable task state with actual repository state.
 
-For high-risk changes, ask an independent reviewer subagent to look for disconfirming evidence rather than merely approving the chosen design.
+For high-risk changes, ask an independent reviewer subagent to look for disconfirming evidence rather than merely approving the chosen design. Prefer `workflow-reviewer` for review delegation — it uses a different model tier from the researcher and executor, providing genuine independence.
 
 ## 11. Self-correct without churn
 

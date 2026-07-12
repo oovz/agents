@@ -27,7 +27,7 @@ To install without the interactive picker, run the shell command instead:
 claude plugin install senior-engineering-workflow@senior-engineering-workflow
 ```
 
-Both the skill and the `workflow-explorer` subagent are installed by the plugin. Run `/reload-plugins` after updating an installed plugin. For local testing, replace `oovz/agents` with the repository path.
+Both the skill and the `workflow-researcher` and `workflow-executor` subagents are installed by the plugin. Run `/reload-plugins` after updating an installed plugin. For local testing, replace `oovz/agents` with the repository path.
 
 ### Codex
 
@@ -36,15 +36,15 @@ codex plugin marketplace add oovz/agents
 codex plugin add senior-engineering-workflow@senior-engineering-workflow
 ```
 
-The plugin installs the skill. Codex plugins do not package custom-agent files, so install the subagent separately:
+The plugin installs the skill. Codex plugins do not package custom-agent files, so install the subagents separately:
 
 ```text
 node scripts/install-adapters.mjs codex --scope user
 ```
 
-Use `--scope project --project <path>` to install the agent into one project's `.codex/agents/` directory. Start a new Codex task after installing or updating the agent.
+Use `--scope project --project <path>` to install the agents into one project's `.codex/agents/` directory. Start a new Codex task after installing or updating the agents.
 
-You can also install **Senior Engineering Workflow** from the ChatGPT desktop plugin directory, then run the adapter command above for the subagent.
+You can also install **Senior Engineering Workflow** from the ChatGPT desktop plugin directory, then run the adapter command above for the subagents.
 
 ### Gemini CLI
 
@@ -75,20 +75,20 @@ This copies the skill to `~/.config/opencode/skills/` and the subagent to `~/.co
 
 ## Package model
 
-| Host | Native package | Skill | Exploration subagent |
-|---|---|---|---|
-| Claude Code | Plugin marketplace | Installed by the plugin | Installed by the plugin |
-| Codex | Plugin marketplace | Installed by the plugin | Installed separately with the adapter script |
-| Gemini CLI | Extension | Generated from `plugins/` | Generated from `adapters/gemini/` |
-| OpenCode | Config bundle | Installed with the adapter script | Installed with the adapter script |
+| Host | Native package | Skill | Research subagent | Review subagent | Execution subagent |
+|---|---|---|---|---|---|
+| Claude Code | Plugin marketplace | Installed by the plugin | Installed by the plugin | Installed by the plugin | Installed by the plugin |
+| Codex | Plugin marketplace | Installed by the plugin | Installed separately (gpt-5.6-sol, max) | Installed separately (gpt-5.6-terra, max) | Installed separately (gpt-5.6-luna, max) |
+| Gemini CLI | Extension | Generated from `plugins/` | Generated from `adapters/gemini/` | Generated from `adapters/gemini/` | Generated from `adapters/gemini/` |
+| OpenCode | Config bundle | Installed with the adapter script | Installed with the adapter script | Installed with the adapter script | Installed with the adapter script |
 
 ## Repository layout
 
 ```text
 plugins/<name>/                     canonical plugin source (skills, agents, manifests)
-adapters/codex/                     Codex-specific agent definition
-adapters/gemini/                    Gemini-specific agent definition
-adapters/opencode/                  OpenCode-specific agent definition
+adapters/codex/                     Codex-specific agent definitions (researcher, reviewer, executor)
+adapters/gemini/                    Gemini-specific agent definitions (researcher, reviewer, executor)
+adapters/opencode/                  OpenCode-specific agent definitions (researcher, reviewer, executor)
 .claude-plugin/marketplace.json     Claude marketplace catalog
 .agents/plugins/marketplace.json    Codex marketplace catalog
 gemini-extension.json               Gemini extension manifest
@@ -105,6 +105,6 @@ Edit canonical sources under `plugins/` and `adapters/`. Then validate:
 npm run validate
 ```
 
-The validation step checks manifest consistency, marketplace paths, required skill and agent metadata, and read-only agent restrictions across all four hosts.
+The validation step checks manifest consistency, marketplace paths, required skill and agent metadata, tiered subagent model and reasoning-effort configuration, and read-only agent restrictions across all four hosts.
 
 GitHub Actions runs the same validation on every push and pull request.

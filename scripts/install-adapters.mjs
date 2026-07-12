@@ -78,10 +78,20 @@ function parseArguments(argv) {
 export async function installAdapters(options) {
   if (options.host === "codex") {
     const base = options.scope === "user" ? path.join(os.homedir(), ".codex") : path.join(options.project, ".codex");
-    return installFiles([{
-      source: path.join(ROOT, "adapters", "codex", "agents", "workflow-explorer.toml"),
-      destination: path.join(base, "agents", "workflow-explorer.toml"),
-    }], options);
+    return installFiles([
+      {
+        source: path.join(ROOT, "adapters", "codex", "agents", "workflow-researcher.toml"),
+        destination: path.join(base, "agents", "workflow-researcher.toml"),
+      },
+      {
+        source: path.join(ROOT, "adapters", "codex", "agents", "workflow-reviewer.toml"),
+        destination: path.join(base, "agents", "workflow-reviewer.toml"),
+      },
+      {
+        source: path.join(ROOT, "adapters", "codex", "agents", "workflow-executor.toml"),
+        destination: path.join(base, "agents", "workflow-executor.toml"),
+      },
+    ], options);
   }
 
   if (options.host === "opencode") {
@@ -90,10 +100,20 @@ export async function installAdapters(options) {
       path.join(PLUGIN, "skills", "senior-engineering-workflow"),
       path.join(base, "skills", "senior-engineering-workflow"),
     );
-    files.push({
-      source: path.join(ROOT, "adapters", "opencode", "agents", "workflow-explorer.md"),
-      destination: path.join(base, "agents", "workflow-explorer.md"),
-    });
+    files.push(
+      {
+        source: path.join(ROOT, "adapters", "opencode", "agents", "workflow-researcher.md"),
+        destination: path.join(base, "agents", "workflow-researcher.md"),
+      },
+      {
+        source: path.join(ROOT, "adapters", "opencode", "agents", "workflow-reviewer.md"),
+        destination: path.join(base, "agents", "workflow-reviewer.md"),
+      },
+      {
+        source: path.join(ROOT, "adapters", "opencode", "agents", "workflow-executor.md"),
+        destination: path.join(base, "agents", "workflow-executor.md"),
+      },
+    );
     return installFiles(files, options);
   }
 
@@ -105,10 +125,20 @@ export async function installAdapters(options) {
       path.join(PLUGIN, "skills", "senior-engineering-workflow"),
       path.join(skillsDest, "senior-engineering-workflow"),
     );
-    files.push({
-      source: path.join(ROOT, "adapters", "gemini", "agents", "workflow-explorer.md"),
-      destination: path.join(agentsDest, "workflow-explorer.md"),
-    });
+    files.push(
+      {
+        source: path.join(ROOT, "adapters", "gemini", "agents", "workflow-researcher.md"),
+        destination: path.join(agentsDest, "workflow-researcher.md"),
+      },
+      {
+        source: path.join(ROOT, "adapters", "gemini", "agents", "workflow-reviewer.md"),
+        destination: path.join(agentsDest, "workflow-reviewer.md"),
+      },
+      {
+        source: path.join(ROOT, "adapters", "gemini", "agents", "workflow-executor.md"),
+        destination: path.join(agentsDest, "workflow-executor.md"),
+      },
+    );
     return installFiles(files, options);
   }
 

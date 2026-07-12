@@ -53,19 +53,58 @@ export async function validateRepository() {
   check(skillMeta.name === NAME, "Skill name does not match its directory");
   check(typeof skillMeta.description === "string" && skillMeta.description.length > 40, "Skill description is missing or too short");
 
-  const claudeAgent = await readFile(path.join(PLUGIN, "agents", "workflow-explorer.md"), "utf8");
-  const geminiAgent = await readFile(path.join(ROOT, "adapters", "gemini", "agents", "workflow-explorer.md"), "utf8");
-  const opencodeAgent = await readFile(path.join(ROOT, "adapters", "opencode", "agents", "workflow-explorer.md"), "utf8");
-  const codexAgent = await readFile(path.join(ROOT, "adapters", "codex", "agents", "workflow-explorer.toml"), "utf8");
-  check(frontmatter(claudeAgent).name === "workflow-explorer", "Claude agent name is invalid");
-  check(frontmatter(claudeAgent).disallowedTools?.includes("Write") && frontmatter(claudeAgent).disallowedTools?.includes("Bash"), "Claude agent is not write-restricted");
-  check(frontmatter(geminiAgent).name === "workflow-explorer", "Gemini agent name is invalid");
-  check(frontmatter(opencodeAgent).mode === "subagent", "OpenCode agent is not a subagent");
-  check(/\n\s*edit:\s*deny\b/.test(opencodeAgent), "OpenCode agent is not write-restricted");
-  check(/\n\s*bash:\s*deny\b/.test(opencodeAgent), "OpenCode agent still allows shell mutation");
-  check(/^name\s*=\s*"workflow_explorer"/m.test(codexAgent), "Codex agent name is invalid");
-  check(/^sandbox_mode\s*=\s*"read-only"/m.test(codexAgent), "Codex agent is not read-only");
-  check(/^developer_instructions\s*=\s*"""/m.test(codexAgent), "Codex agent instructions are missing");
+  const claudeResearcher = await readFile(path.join(PLUGIN, "agents", "workflow-researcher.md"), "utf8");
+  const claudeReviewer = await readFile(path.join(PLUGIN, "agents", "workflow-reviewer.md"), "utf8");
+  const claudeExecutor = await readFile(path.join(PLUGIN, "agents", "workflow-executor.md"), "utf8");
+  const geminiResearcher = await readFile(path.join(ROOT, "adapters", "gemini", "agents", "workflow-researcher.md"), "utf8");
+  const geminiReviewer = await readFile(path.join(ROOT, "adapters", "gemini", "agents", "workflow-reviewer.md"), "utf8");
+  const geminiExecutor = await readFile(path.join(ROOT, "adapters", "gemini", "agents", "workflow-executor.md"), "utf8");
+  const opencodeResearcher = await readFile(path.join(ROOT, "adapters", "opencode", "agents", "workflow-researcher.md"), "utf8");
+  const opencodeReviewer = await readFile(path.join(ROOT, "adapters", "opencode", "agents", "workflow-reviewer.md"), "utf8");
+  const opencodeExecutor = await readFile(path.join(ROOT, "adapters", "opencode", "agents", "workflow-executor.md"), "utf8");
+  const codexResearcher = await readFile(path.join(ROOT, "adapters", "codex", "agents", "workflow-researcher.toml"), "utf8");
+  const codexReviewer = await readFile(path.join(ROOT, "adapters", "codex", "agents", "workflow-reviewer.toml"), "utf8");
+  const codexExecutor = await readFile(path.join(ROOT, "adapters", "codex", "agents", "workflow-executor.toml"), "utf8");
+
+  check(frontmatter(claudeResearcher).name === "workflow-researcher", "Claude researcher agent name is invalid");
+  check(frontmatter(claudeResearcher).disallowedTools?.includes("Write") && frontmatter(claudeResearcher).disallowedTools?.includes("Bash"), "Claude researcher agent is not write-restricted");
+  check(frontmatter(claudeResearcher).effort === "max", "Claude researcher agent must use max reasoning effort");
+  check(frontmatter(claudeReviewer).name === "workflow-reviewer", "Claude reviewer agent name is invalid");
+  check(frontmatter(claudeReviewer).disallowedTools?.includes("Write") && frontmatter(claudeReviewer).disallowedTools?.includes("Bash"), "Claude reviewer agent is not write-restricted");
+  check(frontmatter(claudeReviewer).effort === "max", "Claude reviewer agent must use max reasoning effort");
+  check(frontmatter(claudeExecutor).name === "workflow-executor", "Claude executor agent name is invalid");
+  check(frontmatter(claudeExecutor).effort === "max", "Claude executor agent must use max reasoning effort");
+
+  check(frontmatter(geminiResearcher).name === "workflow-researcher", "Gemini researcher agent name is invalid");
+  check(frontmatter(geminiReviewer).name === "workflow-reviewer", "Gemini reviewer agent name is invalid");
+  check(frontmatter(geminiExecutor).name === "workflow-executor", "Gemini executor agent name is invalid");
+
+  check(frontmatter(opencodeResearcher).mode === "subagent", "OpenCode researcher agent is not a subagent");
+  check(/\n\s*edit:\s*deny\b/.test(opencodeResearcher), "OpenCode researcher agent is not write-restricted");
+  check(/\n\s*bash:\s*deny\b/.test(opencodeResearcher), "OpenCode researcher agent still allows shell mutation");
+  check(frontmatter(opencodeReviewer).mode === "subagent", "OpenCode reviewer agent is not a subagent");
+  check(/\n\s*edit:\s*deny\b/.test(opencodeReviewer), "OpenCode reviewer agent is not write-restricted");
+  check(/\n\s*bash:\s*deny\b/.test(opencodeReviewer), "OpenCode reviewer agent still allows shell mutation");
+  check(frontmatter(opencodeExecutor).mode === "subagent", "OpenCode executor agent is not a subagent");
+  check(/\n\s*edit:\s*allow\b/.test(opencodeExecutor), "OpenCode executor agent must allow editing");
+
+  check(/^name\s*=\s*"workflow_researcher"/m.test(codexResearcher), "Codex researcher agent name is invalid");
+  check(/^sandbox_mode\s*=\s*"read-only"/m.test(codexResearcher), "Codex researcher agent is not read-only");
+  check(/^model\s*=\s*"gpt-5\.6-sol"/m.test(codexResearcher), "Codex researcher agent must use the advanced gpt-5.6-sol model");
+  check(/^model_reasoning_effort\s*=\s*"max"/m.test(codexResearcher), "Codex researcher agent must use max reasoning effort");
+  check(/^developer_instructions\s*=\s*"""/m.test(codexResearcher), "Codex researcher agent instructions are missing");
+
+  check(/^name\s*=\s*"workflow_reviewer"/m.test(codexReviewer), "Codex reviewer agent name is invalid");
+  check(/^sandbox_mode\s*=\s*"read-only"/m.test(codexReviewer), "Codex reviewer agent is not read-only");
+  check(/^model\s*=\s*"gpt-5\.6-terra"/m.test(codexReviewer), "Codex reviewer agent must use the mid-tier gpt-5.6-terra model");
+  check(/^model_reasoning_effort\s*=\s*"max"/m.test(codexReviewer), "Codex reviewer agent must use max reasoning effort");
+  check(/^developer_instructions\s*=\s*"""/m.test(codexReviewer), "Codex reviewer agent instructions are missing");
+
+  check(/^name\s*=\s*"workflow_executor"/m.test(codexExecutor), "Codex executor agent name is invalid");
+  check(/^sandbox_mode\s*=\s*"workspace-write"/m.test(codexExecutor), "Codex executor agent must allow workspace writes");
+  check(/^model\s*=\s*"gpt-5\.6-luna"/m.test(codexExecutor), "Codex executor agent must use the cost-effective gpt-5.6-luna model");
+  check(/^model_reasoning_effort\s*=\s*"max"/m.test(codexExecutor), "Codex executor agent must use max reasoning effort");
+  check(/^developer_instructions\s*=\s*"""/m.test(codexExecutor), "Codex executor agent instructions are missing");
 
   const pluginStat = await stat(PLUGIN);
   check(pluginStat.isDirectory(), "Plugin directory is missing");

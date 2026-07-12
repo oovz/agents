@@ -23,11 +23,25 @@ The workflow is a twelve-step iterative process:
 
 For long-horizon tasks, the skill uses a durable task-state artifact (template included) that survives context transitions.
 
-## Exploration subagent
+## Tiered subagents
 
-The plugin includes a read-only `workflow-explorer` subagent. It maps codebases, traces execution paths, gathers exact-version documentation, and digests verbose evidence in its own context window. It returns a compact findings handoff (claims linked to evidence, open questions, risks, artifact references) to the parent agent, keeping the main context clean.
+The plugin includes three subagents that split work by task type to balance cost, capability, and independence:
 
-The subagent cannot create, edit, delete, or format files. It cannot spawn additional agents. It stays within the scope assigned by the parent and states explicitly when evidence is insufficient.
+| Subagent | Task type | Codex model | Effort | Sandbox |
+|---|---|---|---|---|
+| `workflow-researcher` | Research, design, exploration | `gpt-5.6-sol` (most advanced) | `max` | read-only |
+| `workflow-reviewer` | Code review, security analysis, verification | `gpt-5.6-terra` (mid-tier) | `max` | read-only |
+| `workflow-executor` | Implementation, test execution | `gpt-5.6-luna` (cost-effective) | `max` | workspace-write |
+
+All three use `max` reasoning effort. DeepSWE v1.1 benchmark data shows this is decisive, especially for Luna: it jumps from 44.2% pass@1 at `high` effort to 67.2% at `max` — a 23-point improvement that makes it competitive with Terra (69.6%) and Sol (72.7%) at a fraction of the cost ($3.03 vs $4.95 vs $8.39 per task). Sol is reserved for the hardest research and design work; Terra handles review at 59% of Sol's cost and provides independence through a different model tier; Luna handles high-volume execution at 36% of Sol's cost.
+
+On Claude Code, all three inherit the parent model with `effort: max`. On Gemini CLI and OpenCode, model pinning is not available, so the subagents rely on their tool restrictions and instructions.
+
+The researcher maps codebases, traces execution paths, gathers exact-version documentation, analyzes architecture, and gathers evidence. It cannot create, edit, delete, or format files. It returns a compact findings handoff (claims linked to evidence, open questions, risks, artifact references) to the parent agent.
+
+The reviewer is an independent read-only reviewer that looks for defects, security issues, and disconfirming evidence in work completed by other agents — not to approve it. It checks correctness, security, test coverage, scope creep, compatibility, and conventions. Using a different model tier from the researcher and executor provides genuine independence.
+
+The executor implements well-scoped, settled code changes and runs validation commands. It does not make architectural or design decisions — if the task is ambiguous, it stops and reports back. It owns an explicit set of files assigned by the parent and does not edit outside that set, preventing conflicts when multiple executors run in parallel. It returns a summary of changes, validation results, issues, and follow-up needs.
 
 ## Components
 
@@ -36,7 +50,8 @@ plugins/senior-engineering-workflow/
 ├── .claude-plugin/plugin.json     Claude Code plugin manifest
 ├── .codex-plugin/plugin.json      Codex plugin manifest
 ├── agents/
-│   └── workflow-explorer.md       Claude-format read-only subagent
+│   ├── workflow-researcher.md     Claude-format read-only research subagent
+│   └── workflow-executor.md       Claude-format write-capable execution subagent
 └── skills/
     └── senior-engineering-workflow/
         ├── SKILL.md               the twelve-step workflow skill
@@ -49,7 +64,14 @@ Adapter-specific agent definitions live in the repository's `adapters/` director
 
 ```text
 adapters/
-├── codex/agents/workflow-explorer.toml      Codex-format read-only agent
-├── gemini/agents/workflow-explorer.md       Gemini-format read-only subagent
-└── opencode/agents/workflow-explorer.md     OpenCode-format read-only subagent
+├── codex/agents/
+│   ├── workflow-researcher.toml   Codex-format read-only research agent (gpt-5.6-sol, max effort)
+│   ├── workflow-reviewer.toml     Codex-format read-only review agent (gpt-5.6-terra, max effort)
+│   └── workflow-executor.toml     Codex-format write-capable execution agent (gpt-5.6-luna, max effort)
+├── gemini/agents/
+│   ├── workflow-researcher.md     Gemini-format read-only research subagent
+│   └── workflow-executor.md       Gemini-format write-capable execution subagent
+└── opencode/agents/
+    ├── workflow-researcher.md     OpenCode-format read-only research subagent
+    └── workflow-executor.md       OpenCode-format write-capable execution subagent
 ```
