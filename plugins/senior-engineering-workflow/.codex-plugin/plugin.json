@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "description": "A rigorous evidence-driven workflow for non-trivial software engineering tasks.",
   "author": {
-    "name": "Senior Engineering Workflow Contributors",
+    "name": "Otto (oovz)",
     "url": "https://github.com/oovz/agents"
   },
   "homepage": "https://github.com/oovz/agents",
@@ -15,7 +15,7 @@
     "displayName": "Senior Engineering Workflow",
     "shortDescription": "Evidence-driven engineering for complex work.",
     "longDescription": "Investigate, design, implement, and validate non-trivial software changes with explicit requirements, evidence, delegation, and completion criteria. Ships three tiered subagents: workflow-researcher (gpt-5.6-sol), workflow-reviewer (gpt-5.6-terra), and workflow-executor (gpt-5.6-luna).",
-    "developerName": "Senior Engineering Workflow Contributors",
+    "developerName": "Otto (oovz)",
     "category": "Productivity",
     "capabilities": ["Interactive", "Write"],
     "websiteURL": "https://github.com/oovz/agents",
